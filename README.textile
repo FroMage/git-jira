@@ -16,9 +16,9 @@ Next, edit the "Permission Scheme" of the project you want to allow access to, a
 group: 
 
 |_. Permission Name |_. What for | 
-| Browse Projects | Required for everything | 
-| Assign Issues | Required for starting and merging branches | 
-| Resolve Issue | Required for starting and merging branches | 
+Browse Projects | Required for everything | 
+Assign Issues | Required for starting and merging branches | 
+Resolve Issue | Required for starting and merging branches | 
 
 On the JIRA side you're all set. 
 
@@ -49,11 +49,11 @@ $ git config jira.server https://jira.lunatech.com/jira
 
 h1. Install the JIRA prepare-commit-msg hook 
 
-"Download the custom hook":prepare-commit-msg and install it in your project at @.git/hooks/prepare-commit-msg@. 
+"Download the custom hook":raw/master/prepare-commit-msg and install it in your project at @.git/hooks/prepare-commit-msg@. 
 
 h1. Install the custom git/JIRA commands 
 
-Download "git-jirabranch":git-jirabranch" and "git-jirafix":git-jirafix and put them somewhere on your path, so that git picks them up as git extensions.
+Download "git-jirabranch":raw/master/git-jirabranch and "git-jirafix":raw/master/git-jirafix and put them somewhere on your path, so that git picks them up as git extensions.
 
 h1. Start having fun 
 
