@@ -96,6 +96,8 @@ If the JIRA issue can be resolved from JIRA, it will be cached in @.git/jira.cac
 
 h2. Merge the branch back to master when you have fixed the issue 
 
+Note: the branch name argument is optional, it will default to the current branch if missing.
+
 <pre><code>$ git jirafix FOO-23 
 </code></pre>
 
@@ -106,4 +108,4 @@ This will do the following:
 # Switch to the master branch 
 # Merge the FOO-23 branch on master 
 # Mark the FOO-23 issue as Fixed 
-# Add a comment to FOO-23 saying you committed a fix 
+# Add a comment to FOO-23 saying you committed a fix
