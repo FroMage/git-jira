@@ -15,10 +15,10 @@ Then you will probably want to create a special user with very limited permissio
 Next, edit the "Permission Scheme" of the project you want to allow access to, and grant the following permissions to the "api-users" 
 group: 
 
-|Permission Name|What for| 
-|Browse Projects|Required for everything| 
-|Assign Issues|Required for starting and merging branches| 
-|Resolve Issue|Required for starting and merging branches| 
+|_. Permission Name |_. What for | 
+| Browse Projects | Required for everything | 
+| Assign Issues | Required for starting and merging branches | 
+| Resolve Issue | Required for starting and merging branches | 
 
 On the JIRA side you're all set. 
 
@@ -41,17 +41,17 @@ h1. Set up the git/JIRA integration
 
 You now need to tell our tools how to connect to JIRA: 
 
-{noformat} 
+<pre><code>
 # Run this INSIDE your project (or make it --global if you prefer) 
 $ git config jira.cli ~/no-backup/src/jira-cli-1.5.0/jira.sh 
 $ git config jira.user cli-api 
 $ git config jira.password secret 
 $ git config jira.server https://jira.lunatech.com/jira 
-{noformat} 
+</code></pre>
 
 h1. Install the JIRA prepare-commit-msg hook 
 
-"Download the custom hook":prepare-commit-msg" and install it in your project at {{.git/hooks/prepare-commit-msg}}. 
+"Download the custom hook":prepare-commit-msg and install it in your project at @.git/hooks/prepare-commit-msg@. 
 
 h1. Install the custom git/JIRA commands 
 
@@ -61,9 +61,9 @@ h1. Start having fun
 
 h2. Create an issue branch 
 
-{noformat} 
+<pre><code>
 $ git jirabranch FOO-23 
-{noformat} 
+</code></pre>
 
 This will do the following: 
 
@@ -74,20 +74,20 @@ This will do the following:
 
 h2. Work 
 
-{noformat} 
+<pre><code>
 $ echo "new" > new-file 
 $ git commit new-file 
-{noformat} 
+</code></pre>
 
 Your message will start with those lines: 
 
-{noformat} 
+<pre><code>
 # [FOO-23]: Do tons of fixes 
 
 # [jira] 
 # View this issue at https://jira.lunatech.com/jira/browse/FOO-23 
 # ...The usual git commit message follows... 
-{noformat} 
+</code></pre>
 
 {note}While it is slightly inconvenient to start the JIRA line with a comment, it is necessary because it allows you to cancel the commit by exiting without saving. If we had started the commit file with a non-commented line, git would still commit the file if you left the commit message unedited because it would contain a non-commented line. This is not what users expect, so you have to manually uncomment the JIRA line on every commit if you want to keep it in the commit message, but this is quite acceptable.{note} 
 
@@ -101,9 +101,9 @@ If the JIRA issue can be resolved from JIRA, it will be cached in {{.git/jira.ca
 
 h2. Merge the branch back to master when you have fixed the issue 
 
-{noformat} 
+<pre><code>
 $ git jirafix FOO-23 
-{noformat} 
+</code></pre>
 
 This will do the following: 
 
