@@ -84,15 +84,15 @@ Your message will start with those lines:
 # ...The usual git commit message follows... 
 </code></pre>
 
-{note}While it is slightly inconvenient to start the JIRA line with a comment, it is necessary because it allows you to cancel the commit by exiting without saving. If we had started the commit file with a non-commented line, git would still commit the file if you left the commit message unedited because it would contain a non-commented line. This is not what users expect, so you have to manually uncomment the JIRA line on every commit if you want to keep it in the commit message, but this is quite acceptable.{note} 
+Note: While it is slightly inconvenient to start the JIRA line with a comment, it is necessary because it allows you to cancel the commit by exiting without saving. If we had started the commit file with a non-commented line, git would still commit the file if you left the commit message unedited because it would contain a non-commented line. This is not what users expect, so you have to manually uncomment the JIRA line on every commit if you want to keep it in the commit message, but this is quite acceptable.
 
 h3. What happens if? 
 
-If the hook fails to connect to JIRA, or the issue does not exist or if you forgot to configure the hook with {{git config}}, you will get a comment in the commit file warning you about it. 
+If the hook fails to connect to JIRA, or the issue does not exist or if you forgot to configure the hook with @git config@, you will get a comment in the commit file warning you about it. 
 
-If the branch name does not match the JIRA key grammar, we will not even try to look it up in JIRA, saving time for {{master}} commits. 
+If the branch name does not match the JIRA key grammar, we will not even try to look it up in JIRA, saving time for @master@ commits. 
 
-If the JIRA issue can be resolved from JIRA, it will be cached in {{.git/jira.cache}} so that future commits on this branch are faster. 
+If the JIRA issue can be resolved from JIRA, it will be cached in @.git/jira.cache@ so that future commits on this branch are faster. 
 
 h2. Merge the branch back to master when you have fixed the issue 
 
