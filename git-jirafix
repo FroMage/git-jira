@@ -1,0 +1,48 @@
+#!/bin/bash -e
+
+USAGE='<branchname>'
+LONG_USAGE='git-jirafix lets you merge your issue branch to master 
+and mark the issue as fixed.'
+
+. git-sh-setup
+
+JIRA_SERVER=$(git config jira.server || true)
+JIRA_USER=$(git config jira.user || true)
+JIRA_PASSWORD=$(git config jira.password || true)
+
+JIRA_CLI=$(git config jira.cli || true)
+
+GIT_USER=$(git config user.name || echo $USER)
+
+JIRA_CMD="$JIRA_CLI --server $JIRA_SERVER --user $JIRA_USER --password $JIRA_PASSWORD"
+
+function fail () {
+	echo $@
+	exit 1
+}
+
+# start to work
+
+require_work_tree
+
+BRANCH_NAME=$1
+test -n "$BRANCH_NAME" || usage
+
+test -n "$JIRA_SERVER" || fail "Missing git config variable jira.server (set it with 'git config jira.server ...')"
+test -n "$JIRA_CLI" || fail "Missing git config variable jira.cli (set it with 'git config jira.cli ...')"
+test -n "$JIRA_USER" || fail "Missing git config variable jira.user (set it with 'git config jira.user ...')"
+test -n "$JIRA_PASSWORD" || fail "Missing git config variable jira.password (set it with 'git config jira.password ...')"
+
+[[ $BRANCH_NAME =~ ^[A-Z]+-[0-9]+$ ]] || fail "Branch $BRANCH_NAME does not appear to be a JIRA issue"
+
+echo "Merging branch $BRANCH_NAME"
+
+git checkout $BRANCH_NAME
+git rebase master
+git checkout master
+git merge $BRANCH_NAME
+
+$JIRA_CMD --action progressIssue --issue $BRANCH_NAME --step "Resolve Issue"
+$JIRA_CMD --action updateIssue --issue $BRANCH_NAME --assignee -1
+$JIRA_CMD --action addComment --issue $BRANCH_NAME --comment "Fix committed by $GIT_USER"
+

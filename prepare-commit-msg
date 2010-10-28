@@ -1,0 +1,89 @@
+#!/bin/bash -e
+
+COMMIT_FILE=$1
+
+. git-sh-setup
+
+CACHE_FILE=$GIT_DIR/jira.cache
+
+JIRA_SERVER=$(git config jira.server || true)
+JIRA_USER=$(git config jira.user || true)
+JIRA_PASSWORD=$(git config jira.password || true)
+
+JIRA_CLI=$(git config jira.cli || true)
+
+JIRA_CMD="$JIRA_CLI --server $JIRA_SERVER --user $JIRA_USER --password $JIRA_PASSWORD"
+
+function prepend () {
+	local MSG=$1
+	echo $MSG | sed -i -e "1s/^/\n# [jira]/" -e 'r /dev/stdin' -e '2s/^/# \n/' $COMMIT_FILE
+}
+
+function prepend_ok () {
+	local MSG=$1
+	echo $MSG | sed -i -e 'r /dev/stdin'  -e '1d' -e '2s/^/\n/' $COMMIT_FILE
+}
+
+function get_cached_issue () {
+	local ISSUE=$1
+	test -f $CACHE_FILE || return 0
+	local LINE=`grep ^$ISSUE: $CACHE_FILE`
+	test -n "$LINE" || return 0
+	ISSUE_DESCR=$(echo $LINE | sed -e "s/^$ISSUE: //")
+}
+
+function fail () {
+	echo $@
+	exit 1
+}
+
+# start to work
+
+require_work_tree
+
+test -n "$GIT_DIR" || fail "Missing GIT_DIR variable"
+test -n "$COMMIT_FILE" || fail "Missing commit file argument"
+test -n "$JIRA_SERVER" || fail "Missing git config variable jira.server (set it with 'git config jira.server ...')"
+test -n "$JIRA_CLI" || fail "Missing git config variable jira.cli (set it with 'git config jira.cli ...')"
+test -n "$JIRA_USER" || fail "Missing git config variable jira.user (set it with 'git config jira.user ...')"
+test -n "$JIRA_PASSWORD" || fail "Missing git config variable jira.password (set it with 'git config jira.password ...')"
+
+
+BRANCH_NAME=`git symbolic-ref HEAD | sed -e 's/refs\/heads\///'`
+
+if test -z "$BRANCH_NAME"
+then
+	prepend "# Not committing from a branch"
+	exit 0
+fi
+
+# is the branch a JIRA key?
+if [[ ! ( $BRANCH_NAME =~ ^[A-Z]+-[0-9]+$ ) ]]
+then
+	prepend "# Branch does not appear to be a JIRA issue"
+	exit 0
+fi
+
+get_cached_issue $BRANCH_NAME
+
+if test -z "$ISSUE_DESCR"
+then
+	echo "Querying JIRA, this might take a while..."
+	ISSUE_DESCR=`$JIRA_CMD --action getFieldValue --issue $BRANCH_NAME --field Summary | sed -e '1d'`
+	SHOULD_CACHE=1
+fi
+
+if test -z "$ISSUE_DESCR"
+then
+	prepend "# Branch appears to be a JIRA issue but we were unable to get its description"
+	exit 0
+fi
+
+if test "$SHOULD_CACHE" = "1"
+then
+	echo "$BRANCH_NAME: $ISSUE_DESCR" >> $CACHE_FILE
+
+fi
+
+prepend "# View issue at $JIRA_SERVER/browse/$BRANCH_NAME"
+prepend_ok "#[$BRANCH_NAME]: $ISSUE_DESCR"

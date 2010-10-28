@@ -1,0 +1,115 @@
+If like Stef you're using a local branch per JIRA issue, you might want the following features: 
+
+- Make all commits in that branch include the JIRA issue name and description. 
+- The ability to start a branch for a JIRA issue which would mark the issue as In Progress. 
+- The ability to merge a branch for a JIRA issue which would mark the issue as Fixed. 
+
+This can all be automated and we describe how to set this up. 
+
+h1. Set up JIRA to allow API access 
+
+You need to Administer JIRA and allow it to "Accept remote API calls":http://confluence.atlassian.com/display/JIRA/Configuring+JIRA+Options.
+
+Then you will probably want to create a special user with very limited permissions, let's say "cli-api" (or "cli-api-stef" if you want one API user per user), in a new group called "api-users". 
+
+Next, edit the "Permission Scheme" of the project you want to allow access to, and grant the following permissions to the "api-users" 
+group: 
+
+|Permission Name|What for| 
+|Browse Projects|Required for everything| 
+|Assign Issues|Required for starting and merging branches| 
+|Resolve Issue|Required for starting and merging branches| 
+
+On the JIRA side you're all set. 
+
+h1. Download the JIRA CLI API 
+
+"Download it":https://studio.plugins.atlassian.com/wiki/display/JCLI/JIRA+Command+Line+Interface and in the case of Linux you need to make a small fix to its jira.sh (otherwise you can't call it outside its directory): 
+
+{code} 
+#!/bin/bash 
+
+# Comments 
+# - Customize for your installation, for instance you might want to add default parameters like the following: 
+# java -jar release/jira-cli-1.5.0.jar --server http://my-server --user automation --password automation "$@" 
+
+BASE=$(dirname $0) 
+java -jar $BASE/release/jira-cli-1.5.0.jar "$@" 
+{code} 
+
+h1. Set up the git/JIRA integration 
+
+You now need to tell our tools how to connect to JIRA: 
+
+{noformat} 
+# Run this INSIDE your project (or make it --global if you prefer) 
+$ git config jira.cli ~/no-backup/src/jira-cli-1.5.0/jira.sh 
+$ git config jira.user cli-api 
+$ git config jira.password secret 
+$ git config jira.server https://jira.lunatech.com/jira 
+{noformat} 
+
+h1. Install the JIRA prepare-commit-msg hook 
+
+"Download the custom hook":prepare-commit-msg" and install it in your project at {{.git/hooks/prepare-commit-msg}}. 
+
+h1. Install the custom git/JIRA commands 
+
+Download "git-jirabranch":git-jirabranch" and "git-jirafix":git-jirafix and put them somewhere on your path, so that git picks them up as git extensions.
+
+h1. Start having fun 
+
+h2. Create an issue branch 
+
+{noformat} 
+$ git jirabranch FOO-23 
+{noformat} 
+
+This will do the following: 
+
+# Create a branch called FOO-23 
+# Switch to the new branch 
+# Mark the FOO-23 issue as in progress 
+# Add a comment to FOO-23 saying you started working on it 
+
+h2. Work 
+
+{noformat} 
+$ echo "new" > new-file 
+$ git commit new-file 
+{noformat} 
+
+Your message will start with those lines: 
+
+{noformat} 
+# [FOO-23]: Do tons of fixes 
+
+# [jira] 
+# View this issue at https://jira.lunatech.com/jira/browse/FOO-23 
+# ...The usual git commit message follows... 
+{noformat} 
+
+{note}While it is slightly inconvenient to start the JIRA line with a comment, it is necessary because it allows you to cancel the commit by exiting without saving. If we had started the commit file with a non-commented line, git would still commit the file if you left the commit message unedited because it would contain a non-commented line. This is not what users expect, so you have to manually uncomment the JIRA line on every commit if you want to keep it in the commit message, but this is quite acceptable.{note} 
+
+h3. What happens if? 
+
+If the hook fails to connect to JIRA, or the issue does not exist or if you forgot to configure the hook with {{git config}}, you will get a comment in the commit file warning you about it. 
+
+If the branch name does not match the JIRA key grammar, we will not even try to look it up in JIRA, saving time for {{master}} commits. 
+
+If the JIRA issue can be resolved from JIRA, it will be cached in {{.git/jira.cache}} so that future commits on this branch are faster. 
+
+h2. Merge the branch back to master when you have fixed the issue 
+
+{noformat} 
+$ git jirafix FOO-23 
+{noformat} 
+
+This will do the following: 
+
+# Switch to the branch called FOO-23 
+# Rebase the branch on master 
+# Switch to the master branch 
+# Merge the FOO-23 branch on master 
+# Mark the FOO-23 issue as Fixed 
+# Add a comment to FOO-23 saying you committed a fix 
