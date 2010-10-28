@@ -26,7 +26,9 @@ function fail () {
 require_work_tree
 
 BRANCH_NAME=$1
-test -n "$BRANCH_NAME" || usage
+# default to current branch
+test -n "$BRANCH_NAME" || BRANCH_NAME=`git symbolic-ref HEAD | sed -e 's/refs\/heads\///'`
+test -n "$BRANCH_NAME" || fail "Unable to get branch name from current branch and no argument specified"
 
 test -n "$JIRA_SERVER" || fail "Missing git config variable jira.server (set it with 'git config jira.server ...')"
 test -n "$JIRA_CLI" || fail "Missing git config variable jira.cli (set it with 'git config jira.cli ...')"
@@ -45,4 +47,6 @@ git merge $BRANCH_NAME
 $JIRA_CMD --action progressIssue --issue $BRANCH_NAME --step "Resolve Issue"
 $JIRA_CMD --action updateIssue --issue $BRANCH_NAME --assignee -1
 $JIRA_CMD --action addComment --issue $BRANCH_NAME --comment "Fix committed by $GIT_USER"
+
+echo "*** You are now on branch master ***"
 
