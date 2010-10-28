@@ -26,8 +26,7 @@ h1. Download the JIRA CLI API
 
 "Download it":https://studio.plugins.atlassian.com/wiki/display/JCLI/JIRA+Command+Line+Interface and in the case of Linux you need to make a small fix to its jira.sh (otherwise you can't call it outside its directory): 
 
-{code} 
-#!/bin/bash 
+<pre><code>#!/bin/bash 
 
 # Comments 
 # - Customize for your installation, for instance you might want to add default parameters like the following: 
@@ -35,14 +34,13 @@ h1. Download the JIRA CLI API
 
 BASE=$(dirname $0) 
 java -jar $BASE/release/jira-cli-1.5.0.jar "$@" 
-{code} 
+</code></pre>
 
 h1. Set up the git/JIRA integration 
 
 You now need to tell our tools how to connect to JIRA: 
 
-<pre><code>
-# Run this INSIDE your project (or make it --global if you prefer) 
+<pre><code># Run this INSIDE your project (or make it --global if you prefer) 
 $ git config jira.cli ~/no-backup/src/jira-cli-1.5.0/jira.sh 
 $ git config jira.user cli-api 
 $ git config jira.password secret 
@@ -61,8 +59,7 @@ h1. Start having fun
 
 h2. Create an issue branch 
 
-<pre><code>
-$ git jirabranch FOO-23 
+<pre><code>$ git jirabranch FOO-23 
 </code></pre>
 
 This will do the following: 
@@ -74,15 +71,13 @@ This will do the following:
 
 h2. Work 
 
-<pre><code>
-$ echo "new" > new-file 
+<pre><code>$ echo "new" > new-file 
 $ git commit new-file 
 </code></pre>
 
 Your message will start with those lines: 
 
-<pre><code>
-# [FOO-23]: Do tons of fixes 
+<pre><code># [FOO-23]: Do tons of fixes 
 
 # [jira] 
 # View this issue at https://jira.lunatech.com/jira/browse/FOO-23 
@@ -101,8 +96,7 @@ If the JIRA issue can be resolved from JIRA, it will be cached in {{.git/jira.ca
 
 h2. Merge the branch back to master when you have fixed the issue 
 
-<pre><code>
-$ git jirafix FOO-23 
+<pre><code>$ git jirafix FOO-23 
 </code></pre>
 
 This will do the following: 
