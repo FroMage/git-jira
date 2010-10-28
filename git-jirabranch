@@ -6,6 +6,8 @@ JIRA issue and mark the issue as in progress.'
 
 . git-sh-setup
 
+CACHE_FILE=$GIT_DIR/jira.cache
+
 JIRA_SERVER=$(git config jira.server || true)
 JIRA_USER=$(git config jira.user || true)
 JIRA_PASSWORD=$(git config jira.password || true)
@@ -15,6 +17,14 @@ JIRA_CLI=$(git config jira.cli || true)
 GIT_USER=$(git config user.name || echo $USER)
 
 JIRA_CMD="$JIRA_CLI --server $JIRA_SERVER --user $JIRA_USER --password $JIRA_PASSWORD"
+
+function get_cached_issue () {
+	local ISSUE=$1
+	test -f $CACHE_FILE || return 0
+	local LINE=`grep ^$ISSUE: $CACHE_FILE`
+	test -n "$LINE" || return 0
+	ISSUE_DESCR=$(echo $LINE | sed -e "s/^$ISSUE: //")
+}
 
 function fail () {
 	echo $@
@@ -28,6 +38,7 @@ require_work_tree
 BRANCH_NAME=$1
 test -n "$BRANCH_NAME" || usage
 
+test -n "$GIT_DIR" || fail "Missing GIT_DIR variable"
 test -n "$JIRA_SERVER" || fail "Missing git config variable jira.server (set it with 'git config jira.server ...')"
 test -n "$JIRA_CLI" || fail "Missing git config variable jira.cli (set it with 'git config jira.cli ...')"
 test -n "$JIRA_USER" || fail "Missing git config variable jira.user (set it with 'git config jira.user ...')"
@@ -41,5 +52,16 @@ $JIRA_CMD --action updateIssue --issue $BRANCH_NAME --assignee $JIRA_USER
 $JIRA_CMD --action progressIssue --issue $BRANCH_NAME --step "Start Progress"
 $JIRA_CMD --action addComment --issue $BRANCH_NAME --comment "Coding started by $GIT_USER"
 
+# Cache the jira issue title for later cheaper commits
+get_cached_issue $BRANCH_NAME
+if test -z "$ISSUE_DESCR"
+then
+	ISSUE_DESCR=`$JIRA_CMD --action getFieldValue --issue $BRANCH_NAME --field Summary | sed -e '1d'`
+	echo "$BRANCH_NAME: $ISSUE_DESCR" >> $CACHE_FILE
+
+fi
+
 git checkout -b $BRANCH_NAME
+
+echo "*** You are now on branch $BRANCH_NAME ***"
 
