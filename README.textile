@@ -16,9 +16,9 @@ Next, edit the "Permission Scheme" of the project you want to allow access to, a
 group: 
 
 |_. Permission Name |_. What for|
-Browse Projects | Required for everything|
-Assign Issues | Required for starting and merging branches|
-Resolve Issue | Required for starting and merging branches|
+|Browse Projects | Required for everything|
+|Assign Issues | Required for starting and merging branches|
+|Resolve Issue | Required for starting and merging branches|
 
 On the JIRA side you're all set. 
 
