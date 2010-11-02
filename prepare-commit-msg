@@ -10,13 +10,15 @@ JIRA_SERVER=$(git config jira.server || true)
 JIRA_USER=$(git config jira.user || true)
 JIRA_PASSWORD=$(git config jira.password || true)
 
+JIRA_COMMIT_TEMPLATE=$(git config jira.commit.template || true)
+
 JIRA_CLI=$(git config jira.cli || true)
 
 JIRA_CMD="$JIRA_CLI --server $JIRA_SERVER --user $JIRA_USER --password $JIRA_PASSWORD"
 
 function prepend () {
 	local MSG=$1
-	echo $MSG | sed -i -e "1s/^/\n# [jira]/" -e 'r /dev/stdin' -e '2s/^/# \n/' $COMMIT_FILE
+	echo -e $MSG | sed -i -e "1s/^/\n# [jira]/" -e 'r /dev/stdin' -e '2s/^/# \n/' $COMMIT_FILE
 }
 
 function prepend_ok () {
@@ -47,6 +49,7 @@ test -n "$JIRA_SERVER" || fail "Missing git config variable jira.server (set it 
 test -n "$JIRA_CLI" || fail "Missing git config variable jira.cli (set it with 'git config jira.cli ...')"
 test -n "$JIRA_USER" || fail "Missing git config variable jira.user (set it with 'git config jira.user ...')"
 test -n "$JIRA_PASSWORD" || fail "Missing git config variable jira.password (set it with 'git config jira.password ...')"
+test -n "$JIRA_COMMIT_TEMPLATE" || JIRA_COMMIT_TEMPLATE="[%i]: %t"
 
 
 BRANCH_NAME=`git symbolic-ref HEAD | sed -e 's/refs\/heads\///'`
@@ -85,5 +88,7 @@ then
 
 fi
 
-prepend "# View issue at $JIRA_SERVER/browse/$BRANCH_NAME"
-prepend_ok "#[$BRANCH_NAME]: $ISSUE_DESCR"
+prepend "# [$BRANCH_NAME]: $ISSUE_DESCR\n# View issue at $JIRA_SERVER/browse/$BRANCH_NAME"
+
+MSG=`echo $JIRA_COMMIT_TEMPLATE | awk "-vi=$BRANCH_NAME" "-vt=$ISSUE_DESCR" '{sub(/%i/,i); sub(/%t/,t); print}'`
+prepend_ok "#$MSG"

@@ -86,6 +86,16 @@ Your message will start with those lines:
 
 Note: While it is slightly inconvenient to start the JIRA line with a comment, it is necessary because it allows you to cancel the commit by exiting without saving. If we had started the commit file with a non-commented line, git would still commit the file if you left the commit message unedited because it would contain a non-commented line. This is not what users expect, so you have to manually uncomment the JIRA line on every commit if you want to keep it in the commit message, but this is quite acceptable.
 
+h3. Customising the pre-filled commit message
+
+You can override the start line of the commit messages with the @jira.commit.template@ config:
+
+<pre><code># Run this INSIDE your project (or make it --global if you prefer) 
+$ git config jira.commit.template '%i: %t'
+</code></pre>
+
+The default template is @[%i]: %t@ but you can set it to anything, and @%i@ will be replaced with the issue key, and @%t@ with the issue title.
+
 h3. What happens if? 
 
 If the hook fails to connect to JIRA, or the issue does not exist or if you forgot to configure the hook with @git config@, you will get a comment in the commit file warning you about it. 
