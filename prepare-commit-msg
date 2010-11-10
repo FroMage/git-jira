@@ -18,11 +18,15 @@ JIRA_CMD="$JIRA_CLI --server $JIRA_SERVER --user $JIRA_USER --password $JIRA_PAS
 
 function prepend () {
 	local MSG=$1
+	# Give up if we already have a commit message (like when rebasing)
+	awk 'NR==1 && /^$/ { exit 0 }; {exit 1} ' < $COMMIT_FILE || return 0
 	echo -e $MSG | sed -i -e "1s/^/\n# [jira]/" -e 'r /dev/stdin' -e '2s/^/# \n/' $COMMIT_FILE
 }
 
 function prepend_ok () {
 	local MSG=$1
+	# Give up if we already have a commit message (like when rebasing)
+	awk 'NR==1 && /^$/ { exit 0 }; {exit 1} ' < $COMMIT_FILE || return 0
 	echo $MSG | sed -i -e 'r /dev/stdin'  -e '1d' -e '2s/^/\n/' $COMMIT_FILE
 }
 
