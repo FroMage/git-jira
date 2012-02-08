@@ -17,30 +17,35 @@ JIRA_CLI=$(git config jira.cli || true)
 JIRA_CMD="$JIRA_CLI --server $JIRA_SERVER --user $JIRA_USER --password $JIRA_PASSWORD"
 
 function prepend () {
-	local MSG=$1
-	# Give up if we already have a commit message (like when rebasing)
-	awk 'NR==1 && /^$/ { exit 0 }; {exit 1} ' < $COMMIT_FILE || return 0
-	echo -e $MSG | sed -i -e "1s/^/\n# [jira]/" -e 'r /dev/stdin' -e '2s/^/# \n/' $COMMIT_FILE
+    local MSG=$1
+    # Give up if we already have a commit message (like when rebasing)
+    awk 'NR==1 && /^$/ { exit 0 }; {exit 1} ' < $COMMIT_FILE || return 0
+    printf "MSG: $MSG\n"
+    echo -e $MSG | sed -i '' -e '1s/^/\
+# [jira]/' -e 'r /dev/stdin' -e '2s/^/# \
+/' $COMMIT_FILE
 }
 
 function prepend_ok () {
-	local MSG=$1
-	# Give up if we already have a commit message (like when rebasing)
-	awk 'NR==1 && /^$/ { exit 0 }; {exit 1} ' < $COMMIT_FILE || return 0
-	echo $MSG | sed -i -e 'r /dev/stdin'  -e '1d' -e '2s/^/\n/' $COMMIT_FILE
+    local MSG=$1
+    # Give up if we already have a commit message (like when rebasing)
+    awk 'NR==1 && /^$/ { exit 0 }; {exit 1} ' < $COMMIT_FILE || return 0
+    printf "COMMIT_FILE: $COMMIT_FILE"
+    echo $MSG | sed -i '' -e 'r /dev/stdin' -e '1d' -e '2s/^/\
+/' $COMMIT_FILE
 }
 
 function get_cached_issue () {
-	local ISSUE=$1
-	test -f $CACHE_FILE || return 0
-	local LINE=`grep ^$ISSUE: $CACHE_FILE`
-	test -n "$LINE" || return 0
-	ISSUE_DESCR=$(echo $LINE | sed -e "s/^$ISSUE: //")
+    local ISSUE=$1
+    test -f $CACHE_FILE || return 0
+    local LINE=`grep ^$ISSUE: $CACHE_FILE`
+    test -n "$LINE" || return 0
+    ISSUE_DESCR=$(echo $LINE | sed -e "s/^$ISSUE: //")
 }
 
 function fail () {
-	echo $@
-	exit 1
+    echo $@
+    exit 1
 }
 
 # start to work
@@ -60,35 +65,35 @@ BRANCH_NAME=`git symbolic-ref HEAD | sed -e 's/refs\/heads\///'`
 
 if test -z "$BRANCH_NAME"
 then
-	prepend "# Not committing from a branch"
-	exit 0
+    prepend "# Not committing from a branch"
+    exit 0
 fi
 
 # is the branch a JIRA key?
 if [[ ! ( $BRANCH_NAME =~ ^[A-Z]+-[0-9]+$ ) ]]
 then
-	prepend "# Branch does not appear to be a JIRA issue"
-	exit 0
+    prepend "# Branch does not appear to be a JIRA issue"
+    exit 0
 fi
 
 get_cached_issue $BRANCH_NAME
 
 if test -z "$ISSUE_DESCR"
 then
-	echo "Querying JIRA, this might take a while..."
-	ISSUE_DESCR=`$JIRA_CMD --action getFieldValue --issue $BRANCH_NAME --field Summary | sed -e '1d'`
-	SHOULD_CACHE=1
+    echo "Querying JIRA, this might take a while..."
+    ISSUE_DESCR=`$JIRA_CMD --action getFieldValue --issue $BRANCH_NAME --field Summary | sed -e '1d'`
+    SHOULD_CACHE=1
 fi
 
 if test -z "$ISSUE_DESCR"
 then
-	prepend "# Branch appears to be a JIRA issue but we were unable to get its description"
-	exit 0
+    prepend "# Branch appears to be a JIRA issue but we were unable to get its description"
+    exit 0
 fi
 
 if test "$SHOULD_CACHE" = "1"
 then
-	echo "$BRANCH_NAME: $ISSUE_DESCR" >> $CACHE_FILE
+    echo "$BRANCH_NAME: $ISSUE_DESCR" >> $CACHE_FILE
 
 fi
 
