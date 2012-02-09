@@ -24,24 +24,14 @@ On the JIRA side you're all set.
 
 h1. Download the JIRA CLI API 
 
-"Download it":https://studio.plugins.atlassian.com/wiki/display/JCLI/JIRA+Command+Line+Interface and in the case of Linux you need to make a small fix to its jira.sh (otherwise you can't call it outside its directory): 
-
-<pre><code>#!/bin/bash 
-
-# Comments 
-# - Customize for your installation, for instance you might want to add default parameters like the following: 
-# java -jar release/jira-cli-1.5.0.jar --server http://my-server --user automation --password automation "$@" 
-
-BASE=$(dirname $0) 
-java -jar $BASE/release/jira-cli-1.5.0.jar "$@" 
-</code></pre>
+"Download it":https://studio.plugins.atlassian.com/wiki/display/JCLI/JIRA+Command+Line+Interface (the "Download Binary" link at the bottom), and save it somewhere appropriate on your system.
 
 h1. Set up the git/JIRA integration 
 
 You now need to tell our tools how to connect to JIRA: 
 
 <pre><code># Run this INSIDE your project (or make it --global if you prefer) 
-$ git config jira.cli ~/no-backup/src/jira-cli-1.5.0/jira.sh 
+$ git config jira.cli ~/bin/jira-cli-2.4.0/jira.sh 
 $ git config jira.user cli-api 
 $ git config jira.password secret 
 $ git config jira.server https://jira.lunatech.com/jira 

@@ -20,14 +20,17 @@ function prepend () {
 	local MSG=$1
 	# Give up if we already have a commit message (like when rebasing)
 	awk 'NR==1 && /^$/ { exit 0 }; {exit 1} ' < $COMMIT_FILE || return 0
-	echo -e $MSG | sed -i -e "1s/^/\n# [jira]/" -e 'r /dev/stdin' -e '2s/^/# \n/' $COMMIT_FILE
+	echo -e $MSG | sed -i '' -e "1s/^/\
+# [jira]/" -e 'r /dev/stdin' -e '2s/^/# \
+/' $COMMIT_FILE
 }
 
 function prepend_ok () {
 	local MSG=$1
 	# Give up if we already have a commit message (like when rebasing)
 	awk 'NR==1 && /^$/ { exit 0 }; {exit 1} ' < $COMMIT_FILE || return 0
-	echo $MSG | sed -i -e 'r /dev/stdin'  -e '1d' -e '2s/^/\n/' $COMMIT_FILE
+	echo $MSG | sed -i '' -e 'r /dev/stdin'  -e '1d' -e '2s/^/\
+/' $COMMIT_FILE
 }
 
 function get_cached_issue () {
@@ -94,5 +97,5 @@ fi
 
 prepend "# [$BRANCH_NAME]: $ISSUE_DESCR\n# View issue at $JIRA_SERVER/browse/$BRANCH_NAME"
 
-MSG=`echo $JIRA_COMMIT_TEMPLATE | awk "-vi=$BRANCH_NAME" "-vt=$ISSUE_DESCR" '{sub(/%i/,i); sub(/%t/,t); print}'`
+MSG=`echo $JIRA_COMMIT_TEMPLATE | awk -v i="$BRANCH_NAME" -v t="$ISSUE_DESCR" '{sub(/%i/,i); sub(/%t/,t); print}'`
 prepend_ok "#$MSG"
